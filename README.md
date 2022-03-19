@@ -1,8 +1,20 @@
 # GD-Localization-For-RMMV
-Localization plugin for RPG Maker MV
+Super simple localization plugin for RPG Maker MV
+
+## Plugin Parameters
+* **Directory for language files** - this is the directory where language files should be stored, relative to your game's base directory. The default is to put files in /data/lang
+* **Directory to search for per-map language files** - this is the directory where per-map language files should be stored. They should be named the same as the map's name (NOT its display name) with ".csv" appended (for example, if your map is MAP001, the associated language file would be MAP001.csv and would be put in this directory). The default is to put per-map files in /data/lang/maps
+* **Default files to load for localization** - A list of default localization files which are loaded immediately on game startup
+* **List of supported language codes** - A list of language codes which are supported by the game. This is used by the options screen to show a list of languages to choose from.
+* **Default language code** - The default language to set. The default is "en-us"
+* **Key column name** - The name of the column to look for localization keys. The default is "Key"
+* **Strict error mode** - When strict mode is enabled, if any key cannot be located in currently loaded localization files an error will be displayed. Otherwise, the error will be silently logged to the console. The default is "false"
+
+## Usage
+Anywhere you'd put text which would be displayed to the player (actor names, nicknames, profiles, item names & descriptions, skill messages, event show text, system terms, etc), you can simply put in a token of the form {{PUT_KEY_HERE}}. The localization plugin will search all currently loaded localization data for a row with a key column value of PUT_KEY_HERE, and will substitute that token with the value of the current language column. If the key could not be found, or there is no language column for the current language, it will simply paste in the text PUT_KEY_HERE unless strict mode is enabled (in which case an error will be displayed and the game halted).
 
 ## Script calls
-
+These can be called either from event script calls, or from other plugins
 ```
 L18NManager.getLanguage(langCode)       // get the current language code
 L18NManager.setLanguage(langCode)       // set the current language code
