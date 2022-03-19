@@ -1,0 +1,96 @@
+Key,Description,Comment,en-us
+STAT_LEVEL,,,Level
+STAT_LEVEL_ABBR,,,LV
+STAT_HP,,,HP
+STAT_HP_ABBR,,,HP
+STAT_MP,,,MP
+STAT_MP_ABBR,,,MP
+STAT_TP,,,TP
+STAT_TP_ABBR,,,TP
+STAT_EXP,,,EXP
+STAT_EXP_ABBR,,,EXP
+PARAM_MAX_HP,,,Max HP
+PARAM_MAX_MP,,,Max MP
+PARAM_ATTACK,,,Attack
+PARAM_DEFENSE,,,Defense
+PARAM_M_ATTACK,,,M.Attack
+PARAM_M_DEFENSE,,,M.Defense
+PARAM_AGILITY,,,Agility
+PARAM_LUCK,,,Luck
+PARAM_HIT_RATE,,,Hit
+PARAM_EVASION_RATE,,,Evasion
+CMD_FIGHT,,,Fight
+CMD_ESCAPE,,,Escape
+CMD_ATTACK,,,Attack
+CMD_GUARD,,,Guard
+CMD_ITEM,,,Item
+CMD_SKILL,,,Skill
+CMD_EQUIP,,,Equip
+CMD_STATUS,,,Status
+CMD_FORMATION,,,Formation
+CMD_OPTIONS,,,Options
+CMD_SAVE,,,Save
+CMD_GAME_END,,,Game End
+CMD_MENU_WEAPON,,,Weapon
+CMD_MENU_ARMOR,,,Armor
+CMD_MENU_KEY_ITEM,,,Key Item
+CMD_MENU_EQUIP,,,Equip
+CMD_MENU_OPTIMIZE,,,Optimize
+CMD_MENU_CLEAR,,,Clear
+CMD_MENU_BUY,,,Buy
+CMD_MENU_SELL,,,Sell
+CMD_MENU_NEW_GAME,,,New Game
+CMD_MENU_CONTINUE,,,Continue
+CMD_MENU_TO_TITLE,,,To Title
+CMD_MENU_CANCEL,,,Cancel
+MSG_ALWAYS_DASH,,,Always Dash
+MSG_COMMAND_REMEMBER,,,Command Remember
+MSG_BGM_VOLUME,,,BGM Volume
+MSG_BGS_VOLUME,,,BGS Volume
+MSG_ME_VOLUME,,,ME Volume
+MSG_SE_VOLUME,,,SE Volume
+MSG_POSSESSION,,,Possession
+MSG_EXP_TOTAL,,,Current {{STAT_EXP}}
+MSG_EXP_NEXT,,,Next {{STAT_LEVEL}}
+MSG_SAVE_MESSAGE,,,Save to which file?
+MSG_LOAD_MESSAGE,,,Load which file?
+MSG_FILE,,,File
+MSG_PARTY_NAME,,%1 is lead character's name,%1's Party
+MSG_EMERGE,,%1 is lead opponent,%1 emerged!
+MSG_PREEMPTIVE,,%1 is lead opponent,%1 got the upper hand!
+MSG_SURPRISE,,%1 is lead opponent,%1 was surprised!
+MSG_ESCAPE_START,,%1 is character's name,%1 has started to escape!
+MSG_ESCAPE_FAILURE,,,"However, it was unable to escape!"
+MSG_VICTORY,,%1 is lead character's name,%1 was victorious!
+MSG_DEFEAT,,%1 is lead character's name,%1 was defeated.
+MSG_OBTAIN_EXP,,%1 is amount of EXP,%1 {{STAT_EXP_ABBR}} received!
+MSG_OBTAIN_GOLD,,%1 is amount of gold,%1\G received!
+MSG_OBTAIN_ITEM,,%1 is item name,%1 found!
+MSG_LEVEL_UP,,"%1 is character's name, %3 is character's level",%1 is now {{STAT_LEVEL_ABBR}} %3!
+MSG_OBTAIN_SKILL,,%1 is skill name,%1 learned!
+MSG_USE_ITEM,,"%1 is character's name, %2 is item name",%1 uses %2!
+MSG_CRIT_ENEMY,,,An excellent hit!!
+MSG_CRIT_ACTOR,,,A painful blow!!
+MSG_ACTOR_DAMAGE,,"%1 is character's name, %2 is damage taken",%1 took %2 damage!
+MSG_ACTOR_RECOVERY,,"%1 is character's name, %3 is amount recovered, %2 is stat name",%1 recovered %3 %2!
+MSG_ACTOR_GAIN,,"%1 is character's name, %3 is amount gained, %2 is stat name",%1 gained %3 %2!
+MSG_ACTOR_LOSS,,"%1 is character's name, %3 is amount lost, %2 is stat name",%1 lost %3 %2!
+MSG_ACTOR_DRAIN,,"%1 is character's name, %3 is amount drained, %2 is stat name",%1 was drained of %3 %2!
+MSG_ACTOR_NO_DAMAGE,,%1 is character's name,%1 took no damage!
+MSG_ACTOR_NO_HIT,,%1 is character's name,Miss! %1 took no damage!
+MSG_ENEMY_DAMAGE,,"%1 is enemy's name, %2 is damage taken",%1 took %2 damage!
+MSG_ENEMY_RECOVERY,,"%1 is enemy's name, %3 is amount recovered, %2 is stat name",%1 recovered %2 %3!
+MSG_ENEMY_GAIN,,"%1 is enemy's name, %3 is amount gained, %2 is stat name",%1 gained %2 %3!
+MSG_ENEMY_LOSS,,"%1 is enemy's name, %3 is amount lost, %2 is stat name",%1 lost %2 %3!
+MSG_ENEMY_DRAIN,,"%1 is enemy's name, %3 is amount drained, %2 is stat name",%1 was drained of %2 %3!
+MSG_ENEMY_NO_DAMAGE,,%1 is enemy's name,%1 took no damage!
+MSG_ENEMY_NO_HIT,,%1 is enemy's name,Miss! %1 took no damage!
+MSG_EVASION,,%1 is character's name,%1 evaded the attack!
+MSG_MAGIC_EVASION,,%1 is character's name,%1 nullified the magic!
+MSG_MAGIC_REFLECTION,,%1 is character's name,%1 reflected the magic!
+MSG_COUNTERATTACK,,%1 is character's name,%1 counterattacked!
+MSG_SUBSTITUTE,,"%1 is character replacement, %2 is character being replaced",%1 protected %2!
+MSG_BUFF_ADD,,"%1 is character name, %2 is param being modified",%1's %2 went up!
+MSG_DEBUFF_ADD,,"%1 is character name, %2 is param being modified",%1's %2 went down!
+MSG_BUFF_REMOVE,,"%1 is character name, %2 is param being modified",%1's %2 went back to normal!
+MSG_ACTION_FAILURE,,%1 is character name,There was no effect on %1!
