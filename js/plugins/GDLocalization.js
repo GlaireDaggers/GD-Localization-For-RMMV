@@ -21,6 +21,11 @@
 * @text Default files to load for localization
 * @type text[]
 *
+* @param langList
+* @text List of supported language codes
+* @type text[]
+* @default ["en-us"]
+*
 * @param defaultLang
 * @text Default language code
 * @type text
@@ -62,6 +67,7 @@ L18NManager._patternRegex = /{{([^}]*)}}/g;
 L18NManager._activeLanguageDB = {};
 L18NManager._activeLanguageDBCurrentMap = {};
 L18NManager._activeLang = "en-us";
+L18NManager._langList = [];
 L18NManager._params = {};
 
 L18NManager._parseCSV = function(targetDB, data) {
@@ -89,12 +95,35 @@ L18NManager._parseCSV = function(targetDB, data) {
 	});
 };
 
-L18NManager.setParams = function(params) {
+L18NManager.init = function(params) {
 	this._params = params;
+	
+	let langCodes = JSON.parse(params["langList"]);
+	this.setLanguageList(langCodes);
+	
+	// load language files
+	let langFiles = JSON.parse(params["langFiles"]);
+	langFiles.forEach((langFile) => {
+		this.loadLanguageFile(langFile);
+	});
+	
+	this.setLanguage(params["defaultLang"]);
+};
+
+L18NManager.getLanguage = function() {
+	return this._activeLang;
 };
 
 L18NManager.setLanguage = function(lang) {
 	this._activeLang = lang;
+};
+
+L18NManager.getLanguageList = function() {
+	return this._langList;
+};
+
+L18NManager.setLanguageList = function(list) {
+	this._langList = list;
 };
 
 L18NManager.loadLanguageFile = function(langFile) {
@@ -198,17 +227,34 @@ L18NManager.localizeText = function(text) {
 
 (function() {
 	var parameters = PluginManager.parameters('GDLocalization');
-	L18NManager.setParams(parameters);
-	
-	// load language files
-	var langFiles = JSON.parse(parameters["langFiles"]);
-	langFiles.forEach((langFile) => {
-		L18NManager.loadLanguageFile(langFile);
-	});
-	
-	L18NManager.setLanguage(parameters["defaultLang"]);
+	L18NManager.init(parameters);
 	
 	// === OVERRIDES ===
+
+	// === ConfigManager overrides ===
+
+	Object.defineProperty(ConfigManager, 'language', {
+		get: function() {
+			return L18NManager.getLanguage();
+		},
+		set: function(value) {
+			L18NManager.setLanguage(value);
+		},
+		configurable: true
+	});
+
+	let ConfigManager_makeData_fn = ConfigManager.makeData;
+	ConfigManager.makeData = function() {
+		var config = ConfigManager_makeData_fn.call(this);
+		config.lang = this.language;
+		return config;
+	};
+	
+	let ConfigManager_applyData_fn = ConfigManager.applyData;
+	ConfigManager.applyData = function(config) {
+		ConfigManager_applyData_fn.call(this, config);
+		this.language = config.lang || parameters["defaultLang"];
+	};
 	
 	// === TextManager overrides ===
 	
@@ -228,7 +274,7 @@ L18NManager.localizeText = function(text) {
 		return L18NManager.localizeText($dataSystem.terms.messages[messageId] || '');
 	};
 
-	// === Scene_map overrides ===
+	// === Scene_Map overrides ===
 	
 	let Scene_Map_prototype_onMapLoaded_Fn = Scene_Map.prototype.onMapLoaded;
 	Scene_Map.prototype.onMapLoaded = function() {
@@ -280,6 +326,88 @@ L18NManager.localizeText = function(text) {
 		width = width || 168;
 		this.resetTextColor();
 		this.drawText(L18NManager.localizeText(actor.currentClass().name), x, y, width);
+	};
+
+	// === Window_Options overrides ===
+	
+	let Window_Options_prototype_makeCommandList_fn = Window_Options.prototype.makeCommandList;
+	Window_Options.prototype.makeCommandList = function() {
+		Window_Options_prototype_makeCommandList_fn.call(this);
+		this.addLanguageOption();
+	};
+	
+	Window_Options.prototype.addLanguageOption = function() {
+		this.addCommand(L18NManager.localizeText("{{MSG_LANGUAGE}}"), 'language');
+	};
+	
+	Window_Options.prototype.statusText = function(index) {
+		var symbol = this.commandSymbol(index);
+		var value = this.getConfigValue(symbol);
+		if (this.isVolumeSymbol(symbol)) {
+			return this.volumeStatusText(value);
+		} else if (symbol == "language") {
+			return value;
+		} else {
+			return this.booleanStatusText(value);
+		}
+	};
+	
+	Window_Options.prototype.processOk = function() {
+		var index = this.index();
+		var symbol = this.commandSymbol(index);
+		var value = this.getConfigValue(symbol);
+		if (this.isVolumeSymbol(symbol)) {
+			value += this.volumeOffset();
+			if (value > 100) {
+				value = 0;
+			}
+			value = value.clamp(0, 100);
+			this.changeValue(symbol, value);
+		} else if (symbol == "language") {
+			// todo: ?
+		} else {
+			this.changeValue(symbol, !value);
+		}
+	};
+	
+	Window_Options.prototype.cursorRight = function(wrap) {
+		var index = this.index();
+		var symbol = this.commandSymbol(index);
+		var value = this.getConfigValue(symbol);
+		if (this.isVolumeSymbol(symbol)) {
+			value += this.volumeOffset();
+			value = value.clamp(0, 100);
+			this.changeValue(symbol, value);
+		} else if (symbol == "language") {
+			// TODO: this indexOf business feels kinda bad, but shouldn't be too big a deal
+			// (considering this only happens on button press and I can't imagine a big enough language list to actually be a performance issue)
+			var langIdx = L18NManager.getLanguageList().indexOf(value) + 1;
+			if (langIdx >= L18NManager.getLanguageList().length) {
+				langIdx = 0;
+			}
+			this.changeValue(symbol, L18NManager.getLanguageList()[langIdx]);
+		} else {
+			this.changeValue(symbol, true);
+		}
+	};
+
+	Window_Options.prototype.cursorLeft = function(wrap) {
+		var index = this.index();
+		var symbol = this.commandSymbol(index);
+		var value = this.getConfigValue(symbol);
+		if (this.isVolumeSymbol(symbol)) {
+			value -= this.volumeOffset();
+			value = value.clamp(0, 100);
+			this.changeValue(symbol, value);
+		} else if (symbol == "language") {
+			var langIdx = L18NManager.getLanguageList().indexOf(value) - 1;
+			if (langIdx < 0) {
+				langIdx = L18NManager.getLanguageList().length - 1;
+			}
+			this.changeValue(symbol, L18NManager.getLanguageList()[langIdx]);
+		} else {
+			this.changeValue(symbol, false);
+		}
 	};
 	
 	// === Window_ChoiceList overrides ===
