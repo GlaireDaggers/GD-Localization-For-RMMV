@@ -452,6 +452,19 @@ L18NManager.localizeText = function(text) {
 			this.push('wait');
 		}
 	};
+
+	// === Game_BattlerBase overrides ===
+	
+	Game_BattlerBase.prototype.mostImportantStateText = function() {
+		var states = this.states();
+		for (var i = 0; i < states.length; i++) {
+			let msg = L18NManager.localizeText(states[i].message3);
+			if (msg) {
+				return msg;
+			}
+		}
+		return '';
+	};
 	
 	// === Game_Actor overrides ===
 	
