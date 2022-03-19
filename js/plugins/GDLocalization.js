@@ -452,6 +452,32 @@ L18NManager.localizeText = function(text) {
 			this.push('wait');
 		}
 	};
+	
+	Window_BattleLog.prototype.displayAddedStates = function(target) {
+		target.result().addedStateObjects().forEach(function(state) {
+			var stateMsg = L18NManager.localizeText(target.isActor() ? state.message1 : state.message2);
+			if (state.id === target.deathStateId()) {
+				this.push('performCollapse', target);
+			}
+			if (stateMsg) {
+				this.push('popBaseLine');
+				this.push('pushBaseLine');
+				this.push('addText', target.name() + stateMsg);
+				this.push('waitForEffect');
+			}
+		}, this);
+	};
+
+	Window_BattleLog.prototype.displayRemovedStates = function(target) {
+		target.result().removedStateObjects().forEach(function(state) {
+			let stateMsg = L18NManager.localizeText(state.message4);
+			if (stateMsg) {
+				this.push('popBaseLine');
+				this.push('pushBaseLine');
+				this.push('addText', target.name() + stateMsg);
+			}
+		}, this);
+	};
 
 	// === Game_BattlerBase overrides ===
 	
