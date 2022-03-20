@@ -36,6 +36,11 @@
 * @type text
 * @default Key
 *
+* @param localizeResources
+* @text Localize image & sound resources
+* @type boolean
+* @default true
+*
 * @param strictMode
 * @text Strict error mode
 * @type boolean
@@ -69,6 +74,7 @@ L18NManager._activeLanguageDBCurrentMap = {};
 L18NManager._activeLang = "en-us";
 L18NManager._langList = [];
 L18NManager._params = {};
+L18NManager._localizeResources = true;
 
 L18NManager._parseCSV = function(targetDB, data) {
 	let keyCol = this._params["keyColumn"];
@@ -97,6 +103,8 @@ L18NManager._parseCSV = function(targetDB, data) {
 
 L18NManager.init = function(params) {
 	this._params = params;
+	
+	this._localizeResources = (params["localizeResources"] == "true");
 	
 	let langCodes = JSON.parse(params["langList"]);
 	this.setLanguageList(langCodes);
@@ -225,6 +233,18 @@ L18NManager.localizeText = function(text) {
 	}
 };
 
+L18NManager.localizeResource = function(url) {
+	if (!this._localizeResources) return url;
+	
+	if (url in this._activeLanguageDB && this._activeLang in this._activeLanguageDB[url]) {
+		return this._activeLanguageDB[url][this._activeLang];
+	} else if (url in this._activeLanguageDBCurrentMap && this._activeLang in this._activeLanguageDBCurrentMap[url]) {
+		return this._activeLanguageDBCurrentMap[url][this._activeLang];
+	} else {
+		return url;
+	}
+};
+
 (function() {
 	var parameters = PluginManager.parameters('GDLocalization');
 	L18NManager.init(parameters);
@@ -254,6 +274,67 @@ L18NManager.localizeText = function(text) {
 	ConfigManager.applyData = function(config) {
 		ConfigManager_applyData_fn.call(this, config);
 		this.language = config.lang || parameters["defaultLang"];
+	};
+	
+	// === Bitmap overrides ===
+	
+	Bitmap.prototype._requestImage = function(url) {
+		url = L18NManager.localizeResource(url);
+		
+		if(Bitmap._reuseImages.length !== 0){
+			this._image = Bitmap._reuseImages.pop();
+		}else{
+			this._image = new Image();
+		}
+
+		if (this._decodeAfterRequest && !this._loader) {
+			this._loader = ResourceHandler.createLoader(url, this._requestImage.bind(this, url), this._onError.bind(this));
+		}
+
+		this._image = new Image();
+		this._url = url;
+		this._loadingState = 'requesting';
+
+		if(!Decrypter.checkImgIgnore(url) && Decrypter.hasEncryptedImages) {
+			this._loadingState = 'decrypting';
+			Decrypter.decryptImg(url, this);
+		} else {
+			this._image.src = url;
+
+			this._image.addEventListener('load', this._loadListener = Bitmap.prototype._onLoad.bind(this));
+			this._image.addEventListener('error', this._errorListener = this._loader || Bitmap.prototype._onError.bind(this));
+		}
+	};
+	
+	// === Graphics overrides ===
+	
+	Graphics._playVideo = function(src) {
+		this._video.src = L18NManager.localizeResource(src);
+		this._video.onloadeddata = this._onVideoLoad.bind(this);
+		this._video.onerror = this._videoLoader;
+		this._video.onended = this._onVideoEnd.bind(this);
+		this._video.load();
+		this._videoLoading = true;
+	};
+	
+	// === WebAudio overrides ===
+	
+	WebAudio.prototype._load = function(url) {
+		url = L18NManager.localizeResource(url);
+		
+		if (WebAudio._context) {
+			var xhr = new XMLHttpRequest();
+			if(Decrypter.hasEncryptedAudio) url = Decrypter.extToEncryptExt(url);
+			xhr.open('GET', url);
+			xhr.responseType = 'arraybuffer';
+			xhr.onload = function() {
+				if (xhr.status < 400) {
+					this._onXhrLoad(xhr);
+				}
+			}.bind(this);
+			xhr.onerror = this._loader || function(){this._hasError = true;}.bind(this);
+			xhr.send();
+		}
 	};
 	
 	// === TextManager overrides ===
