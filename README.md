@@ -14,6 +14,8 @@ Super simple localization plugin for RPG Maker MV
 ## Usage
 Anywhere you'd put text which would be displayed to the player (actor names, nicknames, profiles, item names & descriptions, skill messages, event show text, system terms, etc), you can simply put in a token of the form {{PUT_KEY_HERE}}. The localization plugin will search all currently loaded localization data for a row with a key column value of PUT_KEY_HERE, and will substitute that token with the value of the current language column. If the key could not be found, or there is no language column for the current language, it will simply paste in the text PUT_KEY_HERE unless strict mode is enabled (in which case an error will be displayed and the game halted).
 
+You can also parameterize text. For example, if the localized text of PUT_KEY_HERE is "Test message: %1 %2 %3", you can do this: {{PUT_KEY_HERE:"parameter 1" "parameter 2" "parameter 3"}} and each quoted text will be used to replace %1, %2, and %3 respectively.
+
 For image, video, & sound resources, instead of defining an arbitrary key you will put the original path to the resource in the Key column, and put a redirected path in the language column. For example:
 
 | Key                     | Description | Comment   | en-us                   | fr                          |
