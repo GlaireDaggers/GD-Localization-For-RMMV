@@ -67,7 +67,8 @@ function L18NManager() {
     throw new Error('This is a static class');
 }
 
-L18NManager._patternRegex = /{{([^}]*)}}/g;
+L18NManager._tokenKeyPartRegex = /([^:{}]*)/g; // regex to extract the KEY part of a token
+L18NManager._tokenParamPartRegex = /(["'])((\\{2})*|(.*?[^\\](\\{2})*))\1/g; // regex to extract quoted parameters from a parameterized token
 
 L18NManager._activeLanguageDB = {};
 L18NManager._activeLanguageDBCurrentMap = {};
@@ -75,6 +76,75 @@ L18NManager._activeLang = "en-us";
 L18NManager._langList = [];
 L18NManager._params = {};
 L18NManager._localizeResources = true;
+
+L18NManager._initParse = function(text) {
+	// just creates the parser state object used by _parseNext
+	return {
+		position: 0,
+		src: text,
+	};
+};
+
+L18NManager._parseNext = function(parseState) {
+	// look for the next token to parse from input
+	let tokenStart = parseState.src.indexOf("{{", parseState.position);
+	
+	// no more tokens in input text
+	if (tokenStart == -1) {
+		return null;
+	}
+	
+	var token = {
+		index: tokenStart,
+		length: -1,
+		key: null,
+		param: []
+	};
+	
+	this._tokenKeyPartRegex.lastIndex = tokenStart + 2;
+	let keyPart = this._tokenKeyPartRegex.exec(parseState.src);
+	
+	if (keyPart == null) {
+		throw new Error("Failed to parse token in input text");
+	}
+	
+	token.key = keyPart[1];
+	parseState.position = keyPart.index + keyPart[0].length;
+	
+	// parameterized token?
+	if (parseState.src[parseState.position] == ":") {
+		debugger;
+		parseState.position++;
+		
+		// parse parameters
+		var paramPart = null;
+		do {
+			this._tokenParamPartRegex.lastIndex = parseState.position;
+			paramPart = this._tokenParamPartRegex.exec(parseState.src);
+			parseState.position = paramPart.index + paramPart[0].length;
+			token.param.push(paramPart[2].replace(`\"`,`"`)); // note: regex allows for escaped quotes. un-escape them.
+			
+			// skip any whitespace
+			while (/\s/.test(parseState.src[parseState.position])) parseState.position++;
+			
+			// token end? break
+			if (parseState.src.indexOf("}}", parseState.position) == parseState.position) {
+				break;
+			}
+		} while(paramPart != null);
+	}
+	
+	// parse token end
+	let tokenEnd = parseState.src.indexOf("}}", parseState.position);
+	
+	if (tokenEnd == -1) {
+		throw new Error("Malformed token in input text: Token did not have matching closing brackets");
+	}
+	
+	parseState.position = tokenEnd + 2;
+	token.length = parseState.position - token.index;
+	return token;
+};
 
 L18NManager._parseCSV = function(targetDB, data) {
 	let keyCol = this._params["keyColumn"];
@@ -207,29 +277,49 @@ L18NManager.loadMapLanguageFile = function() {
 };
 
 L18NManager.localizeText = function(text) {
-	let newText = text.replace(this._patternRegex, function(match, p1, offset, string) {
-		// p1 contains key
-		if (p1 in this._activeLanguageDB && this._activeLang in this._activeLanguageDB[p1]) {
-			return this._activeLanguageDB[p1][this._activeLang];
-		} else if (p1 in this._activeLanguageDBCurrentMap && this._activeLang in this._activeLanguageDBCurrentMap[p1]) {
-			return this._activeLanguageDBCurrentMap[p1][this._activeLang];
+	var parser = this._initParse(text);
+	var tk = null;
+	var tokenList = [];
+	var modified = false;
+	
+	while ((tk = this._parseNext(parser)) != null) {
+		tokenList.splice(0, 0, tk);
+	}
+	
+	// we go through the tokens backwards so that replacing a token doesn't displace index values of other tokens in the list
+	tokenList.forEach((token) => {
+		let firstPart = text.substr(0, token.index);
+		let lastPart = text.substr(token.index + token.length);
+		
+		var replacement = token.key;
+		
+		if (token.key in this._activeLanguageDB && this._activeLang in this._activeLanguageDB[token.key]) {
+			replacement = this._activeLanguageDB[token.key][this._activeLang];
+		} else if(token.key in this._activeLanguageDBCurrentMap && this._activeLang in this._activeLanguageDBCurrentMap[token.key]) {
+			replacement = this._activeLanguageDBCurrentMap[token.key][this._activeLang];
 		} else {
 			// if strict mode is enabled, throw an error if the key is not defined
-			let msg = `Key not defined in language ${this._activeLang}: ${p1}`;
+			let msg = `Key not defined in language ${this._activeLang}: ${token.key}`;
 			
 			if (this._params["strictMode"] == "true") throw new Error(msg);
 			else console.warn(msg);
-			
-			return p1;
 		}
-	}.bind(this));
+		
+		// handle token parameters
+		for (var i = 0; i < token.param.length; i++) {
+			replacement = replacement.replace("%" + (i + 1), token.param[i]);
+		}
+		
+		text = firstPart + replacement + lastPart;
+		modified = true;
+	});
 	
 	// if text was modified, try to recursively localize result
 	// otherwise just return as-is
-	if (newText != text) {
-		return this.localizeText(newText);
+	if (modified) {
+		return this.localizeText(text);
 	} else {
-		return newText;
+		return text;
 	}
 };
 
