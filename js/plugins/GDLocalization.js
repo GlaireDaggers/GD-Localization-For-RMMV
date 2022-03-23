@@ -121,6 +121,11 @@ L18NManager._parseNext = function(parseState) {
 		do {
 			this._tokenParamPartRegex.lastIndex = parseState.position;
 			paramPart = this._tokenParamPartRegex.exec(parseState.src);
+			
+			if (paramPart == null) {
+				break;
+			}
+			
 			parseState.position = paramPart.index + paramPart[0].length;
 			token.param.push(paramPart[2].replace(`\"`,`"`)); // note: regex allows for escaped quotes. un-escape them.
 			
