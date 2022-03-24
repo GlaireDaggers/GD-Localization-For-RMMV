@@ -113,7 +113,6 @@ L18NManager._parseNext = function(parseState) {
 	
 	// parameterized token?
 	if (parseState.src[parseState.position] == ":") {
-		debugger;
 		parseState.position++;
 		
 		// parse parameters
